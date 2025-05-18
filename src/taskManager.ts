@@ -4,7 +4,11 @@ import { Task, TaskStatus } from './types';
 
 const FILE_PATH = path.resolve(__dirname, '..', 'tasks.json');
 
-async function loadTasks(): Promise<Task[]> {
+function generateId(): number {
+  return Date.now();
+}
+
+export async function loadTasks(): Promise<Task[]> {
   try {
     const data = await fs.readFile(FILE_PATH, 'utf-8');
 
@@ -20,11 +24,67 @@ async function loadTasks(): Promise<Task[]> {
   }
 }
 
-async function saveTasks(tasks: Task[]): Promise<void> {
+export async function saveTasks(tasks: Task[]): Promise<void> {
   try {
     await fs.writeFile(FILE_PATH, JSON.stringify(tasks, null, 2), 'utf-8');
   } catch (error: any) {
     console.error('Error writing to tasks file:', error.message);
     process.exit(1);
   }
+}
+
+export async function addTask(description: string): Promise<void> {
+  const tasks = await loadTasks();
+
+  const newTask: Task = {
+    id: generateId(),
+    description,
+    status: 'todo',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  tasks.push(newTask);
+  await saveTasks(tasks);
+
+  console.log(`Task added successfully (ID: ${newTask.id})`);
+}
+
+export async function updateTask(
+  id: string,
+  description: string,
+): Promise<void> {
+  const tasks = await loadTasks();
+  const taskId = parseInt(id);
+
+  const task = tasks.find((t) => t.id === taskId);
+
+  if (!task) {
+    console.error(`Task with ID ${taskId} not found.`);
+    return;
+  }
+
+  task.description = description;
+  task.updatedAt = new Date().toISOString();
+
+  await saveTasks(tasks);
+
+  console.log(`Task with ID ${taskId} updated successfully.`);
+}
+
+export async function deleteTask(id: string): Promise<void> {
+  const tasks = await loadTasks();
+  const taskId = parseInt(id);
+
+  const task = tasks.find((t) => t.id === taskId);
+
+  if (!task) {
+    console.error(`Task with ID ${taskId} not found.`);
+    return;
+  }
+
+  const updatedTasks = tasks.filter((task) => task.id !== taskId);
+  await saveTasks(updatedTasks);
+
+  console.log(`Task with ID ${taskId} deleted successfully.`);
 }
