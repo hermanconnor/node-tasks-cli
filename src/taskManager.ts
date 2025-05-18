@@ -88,3 +88,49 @@ export async function deleteTask(id: string): Promise<void> {
 
   console.log(`Task with ID ${taskId} deleted successfully.`);
 }
+
+export async function markStatus(
+  id: string,
+  status: TaskStatus,
+): Promise<void> {
+  const tasks = await loadTasks();
+  const taskId = parseInt(id);
+
+  const task = tasks.find((t) => t.id === taskId);
+
+  if (!task) {
+    console.error(`Task with ID ${taskId} not found.`);
+    return;
+  }
+
+  task.status = status;
+  task.updatedAt = new Date().toISOString();
+
+  await saveTasks(tasks);
+  console.log(`Task with ID ${taskId} marked as ${status}.`);
+}
+
+export async function listTasks(status?: TaskStatus): Promise<void> {
+  const tasks = await loadTasks();
+
+  let filteredTasks = tasks;
+
+  if (status) {
+    filteredTasks = tasks.filter((task) => task.status === status);
+  }
+
+  if (filteredTasks.length === 0) {
+    console.log('No tasks found.');
+    return;
+  }
+
+  console.log('Tasks:');
+  filteredTasks.forEach((task) => {
+    console.log(`  ID: ${task.id}`);
+    console.log(`  Description: ${task.description}`);
+    console.log(`  Status: ${task.status}`);
+    console.log(`  Created At: ${task.createdAt}`);
+    console.log(`  Updated At: ${task.updatedAt}`);
+    console.log('---');
+  });
+}
