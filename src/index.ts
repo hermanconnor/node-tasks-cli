@@ -7,9 +7,6 @@ import {
 } from './taskManager';
 
 async function main() {
-  // const args = process.argv.slice(2);
-  // const command = args[0];
-
   const [command, ...args] = process.argv.slice(2);
 
   switch (command) {
